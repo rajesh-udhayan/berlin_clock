@@ -11,8 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,9 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.anonymous.berlinclock.R
-import com.anonymous.berlinclock.domain.LampState
-import com.anonymous.berlinclock.model.BerlinClockState
+import com.anonymous.berlinclock.ui.model.LampState
 import com.anonymous.berlinclock.ui.theme.*
+import com.anonymous.berlinclock.utils.BOTTOM_HOURS_LAMP_COUNT
+import com.anonymous.berlinclock.utils.BOTTOM_MINUTES_LAMP_COUNT
+import com.anonymous.berlinclock.utils.TOP_HOURS_LAMP_COUNT
+import com.anonymous.berlinclock.utils.TOP_MINUTES_LAMP_COUNT
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
@@ -45,10 +48,20 @@ class BerlinClockActivity : ComponentActivity() {
         setContent {
             BerlinClockTheme {
                 Surface(color = MaterialTheme.colors.background) {
-                    MainView()
+                   BerlinClockView()
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startTimer()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        timer.cancel()
     }
 
     private fun startTimer() {
@@ -75,13 +88,7 @@ class BerlinClockActivity : ComponentActivity() {
 }
 
     @Composable
-    fun MainView(viewModel: BerlinClockViewModel = hiltViewModel()) {
-        val berlinClockState by viewModel.berlinClockState.observeAsState(BerlinClockState.initialState())
-        BerlinClockView(berlinClockState)
-    }
-
-    @Composable
-    fun BerlinClockView(berlinClockState: BerlinClockState) {
+    fun BerlinClockView(viewModel: BerlinClockViewModel = hiltViewModel()) {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -98,8 +105,9 @@ class BerlinClockActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                val secondsLampOn = berlinClockState.secondsLampState != LampState.OFF
-                val color = if (secondsLampOn) yellowEnabled else yellowDisabled
+                val berlinClockState = viewModel.berlinClockState.collectAsState().value
+
+                val color = berlinClockState.getSecondsLampColor()
                 //Seconds view
                 Box(
                     modifier = Modifier
@@ -108,16 +116,14 @@ class BerlinClockActivity : ComponentActivity() {
                         .background(color = color, shape = CircleShape)
                 )
                 //Top Hours view
-                val topHours = berlinClockState.topHoursLampState
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    topHours.forEachIndexed { i, lamp ->
-                        val topHoursLampOn = lamp != LampState.OFF
-                        val lampColor = if (topHoursLampOn) redEnabled else redDisabled
+                    for(i in 0 until TOP_HOURS_LAMP_COUNT){
+                        val lampColor = berlinClockState.getTopHoursLampColor(i)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -128,16 +134,14 @@ class BerlinClockActivity : ComponentActivity() {
                     }
                 }
                 //Bottom hours view
-                val bottomHours = berlinClockState.bottomHoursLampState
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    bottomHours.forEachIndexed { i, lamp ->
-                        val bottomHoursLampOn = lamp != LampState.OFF
-                        val lampColor = if (bottomHoursLampOn) redEnabled else redDisabled
+                    for (i in 0 until BOTTOM_HOURS_LAMP_COUNT){
+                        val lampColor = berlinClockState.getBottomHoursLampColor(i)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -148,20 +152,14 @@ class BerlinClockActivity : ComponentActivity() {
                     }
                 }
                 // Top Minutes view
-                val topMinutes = berlinClockState.topMinutesLampState
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    topMinutes.forEachIndexed { i, lamp ->
-                        val lampColor: Color
-                        if (i == 2 || i == 5 || i == 8){
-                            lampColor = if (lamp != LampState.OFF) redEnabled else redDisabled
-                        } else {
-                            lampColor = if (lamp != LampState.OFF) yellowEnabled else yellowDisabled
-                        }
+                    for(i in 0 until TOP_MINUTES_LAMP_COUNT){
+                        val lampColor = berlinClockState.getTopMinutesLampColor(i)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -172,15 +170,14 @@ class BerlinClockActivity : ComponentActivity() {
                     }
                 }
                 // Bottom Minutes view
-                val bottomMinutes = berlinClockState.bottomMinutesLampState
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    bottomMinutes.forEachIndexed { i, lamp ->
-                        val lampColor: Color = if (lamp != LampState.OFF) redEnabled else redDisabled
+                    for (i in 0 until BOTTOM_MINUTES_LAMP_COUNT){
+                        val lampColor: Color = berlinClockState.getBottomMinutesLampColor(i)
                         Box(
                             modifier = Modifier
                                 .weight(1f)

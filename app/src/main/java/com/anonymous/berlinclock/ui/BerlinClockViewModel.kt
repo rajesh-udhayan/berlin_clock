@@ -1,26 +1,24 @@
 package com.anonymous.berlinclock.ui
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.anonymous.berlinclock.domain.BerlinClock
-import com.anonymous.berlinclock.model.BerlinClockState
+import com.anonymous.berlinclock.domain.model.BerlinClock
+import com.anonymous.berlinclock.ui.model.BerlinClockUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class BerlinClockViewModel @Inject constructor(private val berlinClock: BerlinClock): ViewModel() {
+class BerlinClockViewModel @Inject constructor(private val uiMapper: UIMapper) : ViewModel() {
 
-    private var mBerlinClockState = MutableLiveData<BerlinClockState>()
-    val berlinClockState: LiveData<BerlinClockState> = mBerlinClockState
-
-    fun initBerlinClock(){
-        mBerlinClockState.postValue(BerlinClockState.initialState())
-    }
+    private var mBerlinClockState = MutableStateFlow(BerlinClockUIModel.initialState())
+    val berlinClockState: StateFlow<BerlinClockUIModel> = mBerlinClockState
 
     fun updateTime(time: String) {
-        val result = berlinClock.getBerlinClockState(time)
-        mBerlinClockState.postValue(result)
+        val berlinClock = BerlinClock(time)
+        val uiModel = uiMapper.map(berlinClock)
+
+        mBerlinClockState.value = uiModel
     }
-    
+
 }
