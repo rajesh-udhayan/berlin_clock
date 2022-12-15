@@ -1,7 +1,7 @@
 package com.anonymous.berlinclock.ui
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.anonymous.berlinclock.domain.BerlinClock
+import com.anonymous.berlinclock.domain.BerlinClockGenerator
 import com.anonymous.berlinclock.domain.LampState.*
 import com.anonymous.berlinclock.model.BerlinClockState
 import com.anonymous.berlinclock.utils.getOrAwaitValue
@@ -12,7 +12,7 @@ import org.junit.Test
 
 class BerlinClockViewModelTest {
 
-    private val berlinClock = BerlinClock()
+    private val berlinClock = BerlinClockGenerator()
 
     @get:Rule
     var instantTaskExecutorRule = InstantTaskExecutorRule()

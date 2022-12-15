@@ -1,6 +1,6 @@
 package com.anonymous.berlinclock
 
-import com.anonymous.berlinclock.domain.BerlinClock
+import com.anonymous.berlinclock.domain.BerlinClockGenerator
 import com.anonymous.berlinclock.domain.LampState.*
 import com.anonymous.berlinclock.model.BerlinClockState
 import com.google.common.truth.Truth.assertThat
@@ -8,11 +8,11 @@ import org.junit.Before
 import org.junit.Test
 
 class BerlinClockTest {
-    private lateinit var berlinClock: BerlinClock
+    private lateinit var berlinClock: BerlinClockGenerator
 
     @Before
     fun setUp(){
-        berlinClock = BerlinClock()
+        berlinClock = BerlinClockGenerator()
     }
 
     @Test
