@@ -1,7 +1,10 @@
 package com.anonymous.berlinclock.domain.model
 
-data class BerlinClock(val time: String){
-    val hours = time.split(":")[0]
-    val minutes = time.split(":")[1]
-    val seconds = time.split(":")[2]
-}
+data class BerlinClock(
+    val secondsLampOn:Boolean,
+    val topHoursLampCount: Int,
+    val bottomHoursLampCount: Int,
+    val topMinutesLampCount: Int,
+    val bottomMinutesLampCount: Int,
+    val time: String
+)

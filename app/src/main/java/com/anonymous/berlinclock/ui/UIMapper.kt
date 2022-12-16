@@ -1,66 +1,74 @@
 package com.anonymous.berlinclock.ui
 
-import com.anonymous.berlinclock.domain.BerlinClockGenerator
 import com.anonymous.berlinclock.domain.model.BerlinClock
 import com.anonymous.berlinclock.ui.model.BerlinClockUIModel
 import com.anonymous.berlinclock.ui.model.LampState
+import com.anonymous.berlinclock.utils.*
 import javax.inject.Inject
 
-class UIMapper @Inject constructor(private val generator: BerlinClockGenerator) {
+class UIMapper @Inject constructor() {
 
     fun map(domain: BerlinClock): BerlinClockUIModel {
+        val secondsLampState =
+            if (domain.secondsLampOn) LampState.YELLOW_ENABLED else LampState.YELLOW_DISABLED
+
+        val topHoursLampState = getStatesForHoursLamp(domain.topHoursLampCount)
+
+        val bottomHoursLampState = getStatesForHoursLamp(domain.bottomHoursLampCount)
+
+        val topMinutesLampState = getStateForTopMinutesLamps(domain.topMinutesLampCount)
+
+        val bottomMinutesLampState = getStatesForBottomMinutesLamp(domain.bottomMinutesLampCount)
+
         return BerlinClockUIModel(
             time = domain.time,
-            secondsLampState = getLampStateForSeconds(domain.seconds.toInt()),
-            topMinutesLampState = getLampStateForTopMinutes(domain.minutes.toInt()),
-            bottomMinutesLampState = getLampStateForBottomMinutes(domain.minutes.toInt()),
-            topHoursLampState = getLampStateForTopHours(domain.hours.toInt()),
-            bottomHoursLampState = getLampStateForBottomHours(domain.hours.toInt())
+            secondsLampState = secondsLampState,
+            topMinutesLampState = topMinutesLampState,
+            bottomMinutesLampState = bottomMinutesLampState,
+            topHoursLampState = topHoursLampState,
+            bottomHoursLampState = bottomHoursLampState
         )
     }
 
-    private fun getLampStateForSeconds(seconds: Int): LampState =
-        if (seconds % 2 == 0) LampState.YELLOW_ENABLED else LampState.YELLOW_DISABLED
-
-    private fun getLampStateForTopMinutes(minutes: Int): List<LampState> {
-        val lampState = MutableList(11) {
-            if((it + 1) % 3 == 0) LampState.RED_DISABLED else LampState.YELLOW_DISABLED
+    private fun getStatesForHoursLamp(
+        hoursLampCount: Int
+    ): MutableList<LampState> {
+        val lampStates = MutableList(TOTAL_TOP_HOURS_LAMP_COUNT) { LampState.RED_DISABLED }
+        for (i in 0 until hoursLampCount) {
+            lampStates[i] = LampState.RED_ENABLED
         }
-        val topMinutes = minutes / 5
-        (1..topMinutes).forEach { i ->
-            if (i % 3 == 0) {
-                lampState[i - 1] = LampState.RED_ENABLED
-            } else {
-                lampState[i - 1] = LampState.YELLOW_ENABLED
-            }
+        for (i in hoursLampCount until TOTAL_TOP_HOURS_LAMP_COUNT) {
+            lampStates[i] = LampState.RED_DISABLED
         }
-        return lampState
+        return lampStates
     }
 
-    private fun getLampStateForBottomMinutes(minutes: Int): List<LampState> {
-        val lampState = MutableList(4) { LampState.YELLOW_DISABLED }
-        val bottomMinutes = minutes % 5
-        (1..bottomMinutes).forEach { i ->
-            lampState[i - 1] = LampState.YELLOW_ENABLED
+    private fun getStateForTopMinutesLamps(
+        topMinutesLampsCount: Int
+    ): MutableList<LampState> {
+        val topMinutesLampState = MutableList(TOTAL_TOP_MINUTES_LAMP_COUNT) { LampState.RED_DISABLED }
+        for (i in 1..topMinutesLampsCount) {
+            topMinutesLampState[i - 1] =
+                if (i % 3 == 0) LampState.RED_ENABLED else LampState.YELLOW_ENABLED
         }
-        return lampState
+        for (i in topMinutesLampsCount+1 .. TOTAL_TOP_MINUTES_LAMP_COUNT) {
+            topMinutesLampState[i-1] =
+                if (i % 3 == 0) LampState.RED_DISABLED else LampState.YELLOW_DISABLED
+        }
+        return topMinutesLampState
     }
 
-    private fun getLampStateForTopHours(hours: Int): List<LampState> {
-        val lampState = MutableList(4) { LampState.RED_DISABLED }
-        val topHours = hours / 5
-        (1..topHours).forEach { i ->
-            lampState[i - 1] = LampState.RED_ENABLED
+    private fun getStatesForBottomMinutesLamp(
+        bottomMinutesLampCount: Int
+    ): MutableList<LampState> {
+        val bottomMinutesLampState =
+            MutableList(TOTAL_BOTTOM_MINUTES_LAMP_COUNT) { LampState.YELLOW_DISABLED }
+        for (i in 0 until bottomMinutesLampCount) {
+            bottomMinutesLampState[i] = LampState.YELLOW_ENABLED
         }
-        return lampState
-    }
-
-    private fun getLampStateForBottomHours(hours: Int): List<LampState> {
-        val lampState = MutableList(4) { LampState.RED_DISABLED }
-        val bottomHours = hours % 5
-        (1..bottomHours).forEach { i ->
-            lampState[i - 1] = LampState.RED_ENABLED
+        for (i in bottomMinutesLampCount until TOTAL_BOTTOM_MINUTES_LAMP_COUNT) {
+            bottomMinutesLampState[i] = LampState.YELLOW_DISABLED
         }
-        return lampState
+        return bottomMinutesLampState
     }
 }
